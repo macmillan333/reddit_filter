@@ -1,2 +1,18 @@
 <!DOCTYPE html>
-<html><body><h1>Reddit Filter Options</h1></body></html>
+<html>
+    <body>
+        <h1>Reddit Filter Options</h1>
+        <h3>Keywords</h3>
+        <textarea id="keywords"></textarea>
+        <p>One keyword per line. Posts containing at least one keyword will be filtered out.</p>
+        <h3>Other settings</h3>
+        <p><label>
+            <input type="checkbox" id="case_sensitive">Case sensitive
+        </label></p>
+        <p><label>
+            <input type="checkbox" id="hide_growing">Hide Top Growing Communities
+        </label></p>
+        <p><button id="save" type="button">Save</button></p>
+    </body>
+    <script src="options.js"></script>
+</html>
