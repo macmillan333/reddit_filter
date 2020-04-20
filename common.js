@@ -5,3 +5,7 @@ function MultilineStringToArray(str) {
 function ArrayToMultilineString(arr) {
     return arr.join('\n');
 }
+
+function HideElement(element) {
+    element.setAttribute("style", "display:none");
+}

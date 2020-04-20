@@ -1,56 +1,90 @@
-// background.js will handle this message.
-// chrome.runtime.sendMessage({badgeText: "!"});
-
 // Chrome guarantees DOM is complete when this script starts running.
+
 let count = 0;
+function BroadcastCount() {
+    chrome.runtime.sendMessage({badgeText: count.toString()});  // Handled by background.js
+}
+BroadcastCount();
 
-// Hide Top Growing Communities if asked to.
-chrome.storage.sync.get("hide_growing", function(items){
-    if (items["hide_growing"]) {
-        document.getElementsByClassName("_1G4yU68P50vRZ4USXfaceV _2QeqBqfT5UbHBoViZUt-wX")[0].setAttribute("style", "display:none");
-    }
-});
-
-// Small chance this will throw nullReference, because it runs at the same time
+// Small chance this can't read post contents due to it running at the same time
 // Reddit is populating a post.
 function HandleOnePost(div) {
-    console.log("Title:");
-    // console.log(div.getElementsByClassName("_eYtD2XCVieq6emjKBH3m").item(0).textContent);
-    // console.log("Content (if any):");
+    // Collect all text from this post.
+    let text = [];
+
+    // Title. For crossposts there are 2 titles.
+    let allTitles = div.getElementsByClassName("_eYtD2XCVieq6emjKBH3m");
+    for (let t = 0; t < allTitles.length; t++) {
+        text.push(allTitles.item(t).textContent);
+    }
+    if (allTitles.length == 0) {
+        console.log("ERROR: Reddit Filter doesn't see any title in this post.");
+    }
+    // Content, if any.
     let allParagraphs = div.getElementsByClassName("_1qeIAgB0cPwnLhDF9XSiJM");
     for (let p = 0; p < allParagraphs.length; p++) {
-        // console.log(allParagraphs.item(p).textContent);
+        text.push(allParagraphs.item(p).textContent);
     }
-    // console.log("Poll options (if any):");
+    // Poll options, if any.
     let allOptions = div.getElementsByClassName("_3PfYu2DtunAwYpv53tmvOb");
     for (let o = 0; o < allOptions.length; o++) {
-        // console.log(allOptions.item(o).textContent);
+        text.push(allOptions.item(o).textContent);
+    }
+    let fullText = text.join();
+    if (!caseSensitive) fullText = fullText.toLowerCase();
+
+    // Does the full text contain any keyword?
+    let hasKeyword = false;
+    for (let k = 0; k < keywords.length; k++) {
+        let keyword = keywords[k];
+        if (!caseSensitive) keyword = keyword.toLowerCase();
+        if (fullText.includes(keyword)) {
+            hasKeyword = true;
+            console.log("Found keyword: " + keywords[k]);
+            break;
+        }
+    }
+    if (!hasKeyword) {
+        return;
     }
 
-    // Increase post counter.
+    // Remove post and increment counter.
+    console.log("Removed post: " + fullText);
+    HideElement(div);
     count++;
-    console.log("count is now " + count);
-    chrome.runtime.sendMessage({badgeText: count.toString()});
+    BroadcastCount();
 }
 
-let allPosts = document.getElementsByClassName("rpBJOHq2PR60pnwJlUyP0").item(0);
+let keywords = [];
+let caseSensitive = false;
 
-// First, handle initial posts available right now.
-for (let i = 0; i < allPosts.children.length; i++) {
-    // console.log("Post #" + i);
-    HandleOnePost(allPosts.children.item(i));
-}
+// Retrieve options before doing anything.
+chrome.storage.sync.get(null, function(items) {
+    keywords = items["keywords"];
+    caseSensitive = items["case_sensitive"];
 
-// Then, observe any new posts being added and handle them by then.
-let observer = new MutationObserver(function(mutationList, observer) {
-    mutationList.forEach((mutation) => {
-        if (mutation.type != 'childList') return;
-        // console.log("New post:");
-        mutation.addedNodes.forEach((addedNode) => HandleOnePost(addedNode));
+    // Hide Top Growing Communities if asked to.
+    let hideGrowing = items["hide_growing"];
+    if (hideGrowing) {
+        HideElement(document.getElementsByClassName("_1G4yU68P50vRZ4USXfaceV _2QeqBqfT5UbHBoViZUt-wX")[0]);
+    }
+
+    let allPosts = document.getElementsByClassName("rpBJOHq2PR60pnwJlUyP0").item(0);
+    // Handle initial posts available right now.
+    for (let i = 0; i < allPosts.children.length; i++) {
+        HandleOnePost(allPosts.children.item(i));
+    }
+    
+    // Observe new posts when they are added.
+    let observer = new MutationObserver(function(mutationList, observer) {
+        mutationList.forEach((mutation) => {
+            if (mutation.type != 'childList') return;
+            mutation.addedNodes.forEach((addedNode) => HandleOnePost(addedNode));
+        });
     });
-});
-observer.observe(allPosts, {
-    childList: true,
-    attributes: false,
-    subtree: false
-});
+    observer.observe(allPosts, {
+        childList: true,
+        attributes: false,
+        subtree: false
+    });
+})

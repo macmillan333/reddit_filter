@@ -23,6 +23,6 @@ document.getElementsByTagName("button")[0].addEventListener("click", function(ev
         case_sensitive: caseSensitive.checked,
         hide_growing: hideGrowing.checked
     }, function() {
-        status.innerText = "Saved at: " + (Date().toString());
+        status.innerText = "Saved. Refresh Reddit tabs for new options to take effect.";
     });
 });
