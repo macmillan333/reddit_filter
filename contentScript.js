@@ -2,29 +2,42 @@
 // chrome.runtime.sendMessage({badgeText: "!"});
 
 // Chrome guarantees DOM is complete when this script starts running.
+let count = 0;
+
+// Hide Top Growing Communities if asked to.
+chrome.storage.sync.get("hide_growing", function(items){
+    if (items["hide_growing"]) {
+        document.getElementsByClassName("_1G4yU68P50vRZ4USXfaceV _2QeqBqfT5UbHBoViZUt-wX")[0].setAttribute("style", "display:none");
+    }
+});
 
 // Small chance this will throw nullReference, because it runs at the same time
 // Reddit is populating a post.
 function HandleOnePost(div) {
     console.log("Title:");
-    console.log(div.getElementsByClassName("_eYtD2XCVieq6emjKBH3m").item(0).textContent);
-    console.log("Content (if any):");
+    // console.log(div.getElementsByClassName("_eYtD2XCVieq6emjKBH3m").item(0).textContent);
+    // console.log("Content (if any):");
     let allParagraphs = div.getElementsByClassName("_1qeIAgB0cPwnLhDF9XSiJM");
     for (let p = 0; p < allParagraphs.length; p++) {
-        console.log(allParagraphs.item(p).textContent);
+        // console.log(allParagraphs.item(p).textContent);
     }
-    console.log("Poll options (if any):");
+    // console.log("Poll options (if any):");
     let allOptions = div.getElementsByClassName("_3PfYu2DtunAwYpv53tmvOb");
     for (let o = 0; o < allOptions.length; o++) {
-        console.log(allOptions.item(o).textContent);
+        // console.log(allOptions.item(o).textContent);
     }
+
+    // Increase post counter.
+    count++;
+    console.log("count is now " + count);
+    chrome.runtime.sendMessage({badgeText: count.toString()});
 }
 
 let allPosts = document.getElementsByClassName("rpBJOHq2PR60pnwJlUyP0").item(0);
 
 // First, handle initial posts available right now.
 for (let i = 0; i < allPosts.children.length; i++) {
-    console.log("Post #" + i);
+    // console.log("Post #" + i);
     HandleOnePost(allPosts.children.item(i));
 }
 
@@ -32,7 +45,7 @@ for (let i = 0; i < allPosts.children.length; i++) {
 let observer = new MutationObserver(function(mutationList, observer) {
     mutationList.forEach((mutation) => {
         if (mutation.type != 'childList') return;
-        console.log("New post:");
+        // console.log("New post:");
         mutation.addedNodes.forEach((addedNode) => HandleOnePost(addedNode));
     });
 });
