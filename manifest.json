@@ -9,8 +9,11 @@
         "48": "images/get_started48.png",
         "128": "images/get_started128.png"
     },
+    "permissions": [
+        "storage"
+    ],
     "background": {
-        "scripts": ["background.js"],
+        "scripts": ["common.js", "background.js"],
         "persistent": false
     },
     "browser_action": {
@@ -26,7 +29,7 @@
     "content_scripts": [
         {
             "matches": ["https://www.reddit.com/*"],
-            "js": ["contentScript.js"]
+            "js": ["common.js", "contentScript.js"]
         }
     ],
     "homepage_url": "https://i.dont.have/one/yet",
