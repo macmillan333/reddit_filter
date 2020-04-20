@@ -2,12 +2,15 @@
 
 let count = 0;
 function BroadcastCount() {
-    chrome.runtime.sendMessage({badgeText: count.toString()});  // Handled by background.js
+    chrome.storage.sync.set({remove_count: count});
+    chrome.runtime.sendMessage({remove_count: count});  // Handled by background.js
 }
 BroadcastCount();
 
 // Small chance this can't read post contents due to it running at the same time
 // Reddit is populating a post.
+// TODO: Add a retry list. When HandleOnePost fails to read a div, add it to retry list.
+// Each time the observer sees a new div, also retry everything in the retry list.
 function HandleOnePost(div) {
     // Collect all text from this post.
     let text = [];

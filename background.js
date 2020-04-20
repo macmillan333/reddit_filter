@@ -15,5 +15,14 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    chrome.browserAction.setBadgeText({text: request.badgeText});
+    if (request.remove_count != undefined) {
+        let badgeText = request.remove_count.toString();
+        if (request.remove_count > 999) badgeText = "999+";
+        chrome.browserAction.setBadgeText({text: badgeText});
+        if (badgeText == "0") {
+            chrome.browserAction.setBadgeBackgroundColor({color: "#00F"});
+        } else {
+            chrome.browserAction.setBadgeBackgroundColor({color: "#F00"});
+        }
+    }
 });

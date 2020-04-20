@@ -7,5 +7,6 @@ function ArrayToMultilineString(arr) {
 }
 
 function HideElement(element) {
-    element.setAttribute("style", "display:none");
+    // element.setAttribute("style", "display:none");
+    element.remove();
 }
